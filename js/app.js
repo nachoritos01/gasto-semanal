@@ -23,8 +23,18 @@ class Presupuesto {
 
   nuevoGasto(gasto) {
     this.gastos = [...this.gastos, gasto];
-    console.log(this.gastos);
     ui.inprimirAlerta("correcto");
+    this.calcularRestante();
+  }
+
+  calcularRestante() {
+    //acumulado , objeto actual , iniciar en 0
+    const gastado = this.gastos.reduce(
+      (total, gasto) => total + gasto.cantidad,
+      0
+    );
+    this.restante = this.presupuesto - gastado;
+    ui.imprimirRestante(this.restante);
   }
 }
 
@@ -79,7 +89,7 @@ class UI {
       nuevoGasto.dataset.id = id;
 
       //Agregar el html del gasto
-      nuevoGasto.innerHTML = `${nombre}<span class="badge badge-primary badge-pill">${cantidad}</span>`;
+      nuevoGasto.innerHTML = `${nombre}<span class="badge badge-primary badge-pill">$ ${cantidad}</span>`;
       // Boton para borrar
 
       const btnBorrar = document.createElement("button");
@@ -97,6 +107,32 @@ class UI {
   limpiarHTML() {
     while (gatoListado.firstChild) {
       gatoListado.removeChild(gatoListado.firstChild);
+    }
+  }
+
+  imprimirRestante(restante) {
+    document.querySelector("#restante").textContent = restante;
+  }
+
+  comprobarPresupuesto(presupuestoObj) {
+    const { presupuesto, restante } = presupuestoObj;
+
+    const restanteDiv = document.querySelector('.restante');
+
+    if ((presupuesto / 4) > restante) {
+        restanteDiv.classList.remove('alert-success','alert-warning');
+        restanteDiv.classList.add('alert-danger');
+    } else if((presupuesto / 2) > restante) {
+        restanteDiv.classList.remove('alert-success');
+        restanteDiv.classList.add('alert-warning');
+    }
+
+    //si el total es menor a 0
+    console.log(restante);
+    if(restante <=0) {
+        ui.inprimirAlerta('el presupuesto esta agotado', 'error');
+        formulario.querySelector('button[type="submit"]').disabled = true;
+
     }
   }
 }
@@ -143,6 +179,8 @@ function agregarGasto(e) {
   //Imprimir los gastos
   const { gastos } = presupuesto;
   ui.agregarGastoListado(gastos);
+
+  ui.comprobarPresupuesto(presupuesto);
 
   //Reiniciar el formulario
   formulario.reset();
