@@ -36,14 +36,17 @@ class Presupuesto {
     this.restante = this.presupuesto - gastado;
     ui.imprimirRestante(this.restante);
   }
+  eliminarGasto(id) {
+    this.gastos = this.gastos.filter(gasto=> gasto.id !== id);
+    this.calcularRestante();
+
+  }
 }
 
 //Imprimir html
 class UI {
   insertarPresupuesto(cantidad) {
     const { presupuesto, restante } = cantidad;
-
-    console.log(cantidad);
 
     document.querySelector("#total").textContent = presupuesto;
     document.querySelector("#restante").textContent = restante;
@@ -61,8 +64,6 @@ class UI {
     }
 
     //mensaje
-    console.log(divMensaje);
-
     divMensaje.textContent = mensaje;
 
     document.querySelector(".primario").insertBefore(divMensaje, formulario);
@@ -72,7 +73,7 @@ class UI {
     }, 3000);
   }
 
-  agregarGastoListado(gastos) {
+  mostrarGastos(gastos) {
     this.limpiarHTML();
     //Iterar sobre los gastos
 
@@ -96,6 +97,9 @@ class UI {
       console.log(btnBorrar);
       btnBorrar.classList.add("btn", "btn-danger", "borrar-gasto");
       btnBorrar.textContent = "borrar x";
+      btnBorrar.onclick = () => {
+        eliminarGasto(id);
+      };
 
       nuevoGasto.appendChild(btnBorrar);
       //Agregar al html
@@ -117,22 +121,27 @@ class UI {
   comprobarPresupuesto(presupuestoObj) {
     const { presupuesto, restante } = presupuestoObj;
 
-    const restanteDiv = document.querySelector('.restante');
+    const restanteDiv = document.querySelector(".restante");
 
-    if ((presupuesto / 4) > restante) {
-        restanteDiv.classList.remove('alert-success','alert-warning');
-        restanteDiv.classList.add('alert-danger');
-    } else if((presupuesto / 2) > restante) {
-        restanteDiv.classList.remove('alert-success');
-        restanteDiv.classList.add('alert-warning');
+    if (presupuesto / 4 > restante) {
+      restanteDiv.classList.remove("alert-success", "alert-warning");
+      restanteDiv.classList.add("alert-danger");
+    } else if (presupuesto / 2 > restante) {
+      restanteDiv.classList.remove("alert-success");
+      restanteDiv.classList.add("alert-warning");
+    } else {
+      console.log('hola');
+      restanteDiv.classList.remove("alert-danger", "alert-warning");
+      restanteDiv.classList.add("alert-success")
     }
 
     //si el total es menor a 0
     console.log(restante);
-    if(restante <=0) {
-        ui.inprimirAlerta('el presupuesto esta agotado', 'error');
-        formulario.querySelector('button[type="submit"]').disabled = true;
-
+    if (restante <= 0) {
+      ui.inprimirAlerta("el presupuesto esta agotado", "error");
+      formulario.querySelector('button[type="submit"]').disabled = true;
+    }else {
+      formulario.querySelector('button[type="submit"]').disabled = false;
     }
   }
 }
@@ -178,10 +187,21 @@ function agregarGasto(e) {
 
   //Imprimir los gastos
   const { gastos } = presupuesto;
-  ui.agregarGastoListado(gastos);
+  ui.mostrarGastos(gastos);
 
   ui.comprobarPresupuesto(presupuesto);
 
   //Reiniciar el formulario
   formulario.reset();
+}
+
+function eliminarGasto(id) {
+  //Elimina del objeto
+  presupuesto.eliminarGasto(id);
+  //Elimina los gastos del html
+  const {gastos, restante} = presupuesto;
+
+  ui.mostrarGastos(gastos);
+  presupuesto.calcularRestante(restante);
+  ui.comprobarPresupuesto(presupuesto);
 }
